@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WAISI RealWear Studio v8</title>
+
+<style>
+:root{
+  --bg:#090b10;
+  --panel:#121722;
+  --line:#273044;
+  --text:#f5f7fb;
+  --muted:#9da8ba;
+  --accent:#7c5cff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  padding:18px 22px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+}
+h1{margin:0;font-size:21px}
+.small{color:var(--muted);font-size:12px}
+
+.layout{
+  display:grid;
+  grid-template-columns:260px 1fr 340px;
+  min-height:calc(100vh - 75px);
+}
+aside,main{
+  padding:16px;
+  border-right:1px solid var(--line);
+}
+.right{border-right:0}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+}
+.card h3{margin:0 0 12px;font-size:15px}
+
+button,input,select,textarea{
+  width:100%;
+  background:#0c1018;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:10px;
+  margin:5px 0;
+}
+button{cursor:pointer}
+button:hover{border-color:#7c5cff}
+.primary{
+  background:var(--accent);
+  border:0;
+  font-weight:700;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+label{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:8px;
+}
+
+.stage{
+  min-height:480px;
+  background:radial-gradient(circle,#222c40,#0b0e14);
+  border:1px solid var(--line);
+  border-radius:18px;
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+#garment{
+  width:min(430px,75%);
+  filter:drop-shadow(0 25px 25px #000);
+}
+.stageTitle{
+  position:absolute;
+  top:13px;
+  left:15px;
+  color:var(--muted);
+  font-size:12px;
+}
+.symbols{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:5px;
+}
+.symbols button{
+  font-size:22px;
+  padding:7px 2px;
+}
+.two{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+th,td{
+  border:1px solid var(--line);
+  padding:6px;
+  text-align:center;
+}
+td input{
+  padding:4px;
+  margin:0;
+  text-align:center;
+  border:0;
+}
+#aiResult img{
+  width:100%;
+  border-radius:12px;
+  margin-top:10px;
+}
+.techTitle{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside,main{
+    border-right:0;
+    border-bottom:1px solid var(--line);
+  }
+}
+@media print{
+  header, .left, #aiBox, .symbolsCard button, .noPrint{
+    display:none!important;
+  }
+  body{background:white;color:black}
+  .layout{display:block}
+  main,.right{border:0}
+  .card,.stage{
+    border:1px solid #aaa;
+    background:white;
+    color:black;
+    break-inside:avoid;
+  }
+  label,.small{color:#555}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>WAISI RealWear Studio v8</h1>
+    <div class="small">Garment Design • AI Concepts • Manufacturer Tech Pack</div>
+  </div>
+  <button style="width:auto" onclick="window.print()">Export Tech Pack / PDF</button>
+</header>
+
+<div class="layout">
+
+<aside class="left">
+
+  <div class="card">
+    <h3>1. Kledingstuk</h3>
+    <div class="grid">
+      <button onclick="setGarment('Hoodie')">Hoodie</button>
+      <button onclick="setGarment('Polo')">Polo</button>
+      <button onclick="setGarment('T-shirt')">T-shirt</button>
+      <button onclick="setGarment('Sweater')">Sweater</button>
+      <button onclick="setGarment('Trainingspak')">Trainingspak</button>
+      <button onclick="setGarment('Broek')">Broek</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>2. Vorm & Fit</h3>
+
+    <label>Fit</label>
+    <select id="fit">
+      <option>Regular Fit</option>
+      <option>Oversized</option>
+      <option>Boxy Fit</option>
+      <option>Slim Fit</option>
+      <option>Cropped</option>
+      <option>Longline</option>
+    </select>
+
+    <label>Totale lengte (cm)</label>
+    <input id="length" type="number" value="70">
+
+    <label>½ Borstbreedte (cm)</label>
+    <input id="chest" type="number" value="62">
+
+    <label>Schouderbreedte (cm)</label>
+    <input id="shoulder" type="number" value="58">
+
+    <label>Mouwlengte (cm)</label>
+    <input id="sleeve" type="number" value="61">
+
+    <label>Zoomwijdte (cm)</label>
+    <input type="number" value="54">
+
+    <label>Manchet hoogte (cm)</label>
+    <input type="number" value="7">
+
+    <label>Halsopening (cm)</label>
+    <input type="number" value="20">
+  </div>
+
+</aside>
+
+<main>
+
+  <div class="stage">
+    <div class="stageTitle" id="stageTitle">Hoodie • Product Preview</div>
+
+    <svg id="garment" viewBox="0 0 400 440">
+
+      <path id="body"
+        d="M120 90 L80 120 35 205 90 230 112 190
+           105 395 295 395 288 190 310 230 365 205
+           320 120 280 90 245 70 155 70Z"
+        fill="#222222"
+        stroke="#777"
+        stroke-width="3"/>
+
+      <path id="hood"
+        d="M155 72 Q200 5 245 72
+           Q230 120 200 120
+           Q170 120 155 72"
+        fill="#222222"
+        stroke="#777"
+        stroke-width="3"/>
+
+      <path id="pocket"
+        d="M145 220 Q200 195 255 220
+           L245 285 Q200 300 155 285Z"
+        fill="none"
+        stroke="#777"
+        stroke-width="3"/>
+
+      <text id="graphic"
+        x="200"
+        y="180"
+        text-anchor="middle"
+        font-size="42">★</text>
+
+    </svg>
+  </div>
+
+  <div class="card" id="aiBox">
+    <h3>AI Design Generator</h3>
+
+    <textarea id="prompt" rows="4"
+      placeholder="Bijvoorbeeld: luxe oversized zwarte hoodie, zware 450 GSM katoen, geborduurd WAISI-logo op linkerborst, minimalistische premium streetwear..."></textarea>
+
+    <button class="primary" onclick="generateAI()">
+      Genereer AI kledingconcept
+    </button>
+
+    <div id="aiResult"></div>
+  </div>
+
+  <div class="card">
+    <div class="techTitle">Design Notes</div>
+    <textarea rows="5"
+      placeholder="Extra instructies voor de fabrikant, stitching, afwerking, verpakking, tolerantie, labels enz."></textarea>
+  </div>
+
+</main>
+
+<aside class="right">
+
+  <div class="card">
+    <h3>3. Kleuren</h3>
+
+    <label>Volledige kleurkiezer</label>
+    <input id="colorPicker"
+      type="color"
+      value="#222222"
+      oninput="changeColor(this.value)">
+
+    <label>HEX kleurcode</label>
+    <input id="hex"
+      value="#222222"
+      onchange="changeColor(this.value)">
+
+    <div class="two">
+      <div>
+        <label>Contrastkleur</label>
+        <input type="color" value="#ffffff">
+      </div>
+      <div>
+        <label>Stikselkleur</label>
+        <input type="color" value="#222222">
+      </div>
+    </div>
+  </div>
+
+  <div class="card symbolsCard">
+    <h3>4. Symbols & Graphics</h3>
+
+    <div class="symbols" id="symbolLibrary"></div>
+
+    <label>Eigen logo / afbeelding</label>
+    <input type="file"
+      id="logoUpload"
+      accept="image/png,image/jpeg,image/svg+xml"
+      onchange="previewLogo(event)">
+
+    <div id="logoPreview"></div>
+
+    <label>Graphic breedte (cm)</label>
+    <input type="number" value="8">
+
+    <label>Graphic hoogte (cm)</label>
+    <input type="number" value="8">
+
+    <label>Plaatsing</label>
+    <select>
+      <option>Linkerborst</option>
+      <option>Rechterborst</option>
+      <option>Midden borst</option>
+      <option>Volledige voorkant</option>
+      <option>Rug</option>
+      <option>Linkermouw</option>
+      <option>Rechtermouw</option>
+      <option>Capuchon</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h3>5. Productiespecificaties</h3>
+
+    <label>Decoratietechniek</label>
+    <select>
+      <option>Borduring</option>
+      <option>Screenprint</option>
+      <option>DTG Print</option>
+      <option>DTF Transfer</option>
+      <option>Puff Print</option>
+      <option>Silicone Patch</option>
+      <option>Rubber Patch</option>
+      <option>Woven Patch</option>
+      <option>Appliqué</option>
+    </select>
+
+    <label>Materiaal</label>
+    <select>
+      <option>100% Cotton</option>
+      <option>Cotton / Polyester</option>
+      <option>French Terry Cotton</option>
+      <option>Brushed Fleece</option>
+      <option>Polyester Performance</option>
+    </select>
+
+    <label>Stofgewicht / GSM</label>
+    <input type="number" value="400">
+
+    <label>Rib</label>
+    <input value="2x2 Rib">
+
+    <label>Naadtype</label>
+    <select>
+      <option>Overlock + Coverstitch</option>
+      <option>Flatlock</option>
+      <option>Double Needle</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h3>6. Maattabel</h3>
+
+    <table>
+      <tr>
+        <th>Maat</th>
+        <th>½ Chest</th>
+        <th>Length</th>
+        <th>Sleeve</th>
+      </tr>
+
+      <tr><td>XS</td><td><input value="54"></td><td><input value="66"></td><td><input value="59"></td></tr>
+      <tr><td>S</td><td><input value="58"></td><td><input value="68"></td><td><input value="60"></td></tr>
+      <tr><td>M</td><td><input value="62"></td><td><input value="70"></td><td><input value="61"></td></tr>
+      <tr><td>L</td><td><input value="66"></td><td><input value="72"></td><td><input value="62"></td></tr>
+      <tr><td>XL</td><td><input value="70"></td><td><input value="74"></td><td><input value="63"></td></tr>
+      <tr><td>2XL</td><td><input value="74"></td><td><input value="76"></td><td><input value="64"></td></tr>
+      <tr><td>3XL</td><td><input value="78"></td><td><input value="78"></td><td><input value="65"></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>7. Fabrikantgegevens</h3>
+
+    <label>Style / Product naam</label>
+    <input placeholder="WAISI Hoodie 001">
+
+    <label>Style Number</label>
+    <input placeholder="WS-H001">
+
+    <label>Collectie</label>
+    <input placeholder="AW 2027">
+
+    <label>Bestelhoeveelheid</label>
+    <input type="number" placeholder="300">
+
+    <label>Sample Size</label>
+    <select>
+      <option>XS</option>
+      <option>S</option>
+      <option selected>M</option>
+      <option>L</option>
+      <option>XL</option>
+    </select>
+
+    <label>Fabrikant</label>
+    <input placeholder="Factory / Supplier">
+
+    <label>Versie Tech Pack</label>
+    <input value="1.0">
+  </div>
+
+</aside>
+
+</div>
+
+<script>
+const symbols = [
+"★","☆","✦","✧","✪","✯",
+"♥","♡","♠","♣","♦","♛",
+"♕","⚜","☀","☾","☁","❄",
+"⚡","🔥","☯","☮","✿","❀",
+"❖","◆","◇","▲","△","●",
+"○","■","□","✚","✖","∞",
+"☘","☄","☂","♫","✓","✔",
+"➤","➜","⬟","⬢","◈","◉",
+"✶","✷","✸","✹","✺","✵",
+"♜","♞","♚","⚔","⚓","⚙"
+];
+
+const symbolLibrary = document.getElementById("symbolLibrary");
+
+symbols.forEach(symbol => {
+  const button = document.createElement("button");
+  button.textContent = symbol;
+  button.onclick = () => {
+    document.getElementById("graphic").textContent = symbol;
+  };
+  symbolLibrary.appendChild(button);
+});
+
+function changeColor(color){
+  document.getElementById("body").setAttribute("fill",color);
+  document.getElementById("hood").setAttribute("fill",color);
+  document.getElementById("colorPicker").value = color;
+  document.getElementById("hex").value = color;
+}
+
+function setGarment(type){
+  document.getElementById("stageTitle").textContent =
+    type + " • Product Preview";
+
+  const hood = document.getElementById("hood");
+  const pocket = document.getElementById("pocket");
+
+  if(type === "Hoodie"){
+    hood.style.display = "block";
+    pocket.style.display = "block";
+  }else{
+    hood.style.display = "none";
+    pocket.style.display = "none";
+  }
+}
+
+function previewLogo(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+    document.getElementById("logoPreview").innerHTML =
+      '<img src="' + e.target.result +
+      '" style="max-width:100%;max-height:100px;margin-top:10px;border-radius:8px">';
+  };
+
+  reader.readAsDataURL(file);
+}
+
+async function generateAI(){
+  const resultBox = document.getElementById("aiResult");
+  const prompt = document.getElementById("prompt").value.trim();
+
+  if(!prompt){
+    resultBox.innerHTML = "<p>Vul eerst een ontwerpomschrijving in.</p>";
+    return;
+  }
+
+  resultBox.innerHTML = "<p>AI ontwerp wordt gegenereerd...</p>";
+
+  try{
+    const response = await fetch("/api/generate",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({prompt})
+    });
+
+    const data = await response.json();
+
+    if(data.image){
+      resultBox.innerHTML =
+        '<img src="' + data.image + '" alt="AI kledingontwerp">';
+    }else{
+      resultBox.innerHTML =
+        "<p>" + (data.error || "Genereren mislukt") + "</p>";
+    }
+
+  }catch(error){
+    resultBox.innerHTML =
+      "<p>Serverfout: " + error.message + "</p>";
+  }
+}
+</script>
+
+</body>
+</html>
