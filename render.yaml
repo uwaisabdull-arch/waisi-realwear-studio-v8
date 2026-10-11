@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: waisi-realwear-studio-v8
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
